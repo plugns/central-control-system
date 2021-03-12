@@ -8,6 +8,7 @@ load_dotenv(verbose=True)
 HOST = os.getenv("HOST")
 PORT = int(os.getenv("PORT"))
 
+
 class ClientThread(threading.Thread):
     def __init__(self, clientAddress, clientsocket):
         threading.Thread.__init__(self)
