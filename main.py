@@ -2,11 +2,10 @@
 import socket
 from _thread import *
 import os
+import time
 from dotenv import load_dotenv
 import cv2
-import imutils
-import math
-from Modules import module_calibrate_camera
+from Modules import module_calibrate_camera, module_vision
 
 load_dotenv(verbose=True)
 
@@ -40,6 +39,8 @@ def init_system():
             while loop:
                 _, frame = cap.read()
                 cv2.imshow("Cenario", frame)
+                module_vision.robotDetecting(frame)
+                time.sleep(100)
                 receivedData = newSocket.recv(1024).decode('utf-8')
                 print(">>Receive Data : ", receivedData)
                 if receivedData == "exit":
