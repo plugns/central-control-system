@@ -1,15 +1,22 @@
 import socket
 
-SERVER = "127.0.0.1"
-PORT = 8080
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect((SERVER, PORT))
-client.sendall(bytes("This is from Client",'UTF-8'))
-while True:
-  in_data =  client.recv(1024)
-  print("From Server :" ,in_data.decode())
-  out_data = input()
-  client.sendall(bytes(out_data,'UTF-8'))
-  if out_data=='bye':
-    break
-client.close()
+# address and port is arbitrary
+def client(host="127.0.0.1", port=1000):
+  with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+    sock.connect((host, port))
+
+    while True:
+      data = input("[+] Enter string : ")
+      sock.sendall(data.encode('utf-8'))
+      print("[+] Sending to {}:{}".format(host, port))
+
+      response = sock.recv(4096)
+
+      if not response:
+        print("[-] Not Received")
+        break
+
+      print("[+] Received", repr(response.decode('utf-8')))
+
+if __name__ == "__main__":
+  client()

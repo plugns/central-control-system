@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import socket
-import threading
+from _thread import *
 import os
 from dotenv import load_dotenv
 import cv2
@@ -15,41 +15,39 @@ PORT = int(os.getenv("PORT"))
 DEVICE_NUMBER = int(os.getenv("DEVICE_NUMBER"))
 
 
-class ClientThread(threading.Thread):
-    def __init__(self, clientAddress, clientsocket):
-        threading.Thread.__init__(self)
-        self.csocket = clientsocket
-        self.caddress = clientAddress
-        print("New Robot connection added: ", clientAddress)
-
-    def run(self):
-        # self.csocket.send(bytes("Hi, This is from Server..",'utf-8'))
-        msg = ''
-        cap = init_vision_system(DEVICE_NUMBER)
-        while True:
-            _, frame = cap.read()
-            cv2.imshow("Cenario", frame)
-            data = self.csocket.recv(2048)
-            if data:
-                msg = data.decode()
-                if msg == 'bye':
-                    break
-                print("from client", msg)
-                self.csocket.send(bytes(msg, 'UTF-8'))
-        print("Client at ", self.caddress, " disconnected...")
-
-
 def init_system():
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server.bind((HOST, PORT))
-    print("Server started")
-    print("Waiting for Robot request..")
-    while True:
-        server.listen(1)
-        clientsock, clientAddress = server.accept()
-        newthread = ClientThread(clientAddress, clientsock)
-        newthread.start()
+    cap = init_vision_system(DEVICE_NUMBER)
+    # Create a TCP/IP socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # Ensure that you can restart your server quickly when it terminates
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    # Set the client socket's TCP "well-known port" number
+    sock.bind(('', PORT))
+    # Set the number of clients waiting for connection that can be queued
+    sock.listen(5)
+    try:
+        while True:
+            robot_name = ''
+            newSocket, address = sock.accept()
+            print("Connected from ", address)
+            receivedData = newSocket.recv(1024).decode('utf-8')
+            if not receivedData:
+                break
+            robot_name = receivedData
+            print("Robot Connected: ", receivedData)
+            newSocket.send("OK".encode('utf-8'))
+            loop = True
+            while loop:
+                _, frame = cap.read()
+                cv2.imshow("Cenario", frame)
+                receivedData = newSocket.recv(1024).decode('utf-8')
+                print(">>Receive Data : ", receivedData)
+                if receivedData == "exit":
+                    print(">>Disconnected from", address)
+                    newSocket.close()
+                    loop = False
+    finally:
+        sock.close()
 
 
 def init_vision_system(device_number):
@@ -70,6 +68,7 @@ def init_vision_system(device_number):
         return cap
     else:
         print('Error on open video device', device_number)
+
 
 def print_menuCentral():  ## Your menu design here
     print(24 * "-", "CENTRAL CONTROL SYSTEM", 24 * "-")
