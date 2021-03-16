@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import socket
-from _thread import *
 import os
 import time
 from dotenv import load_dotenv
@@ -8,7 +7,6 @@ import cv2
 from Modules import module_calibrate_camera, module_vision
 
 load_dotenv(verbose=True)
-
 HOST = os.getenv("HOST")
 PORT = int(os.getenv("PORT"))
 DEVICE_NUMBER = int(os.getenv("DEVICE_NUMBER"))
@@ -39,14 +37,14 @@ def init_system():
             while loop:
                 _, frame = cap.read()
                 cv2.imshow("Cenario", frame)
+                module_vision.arucoDetecting(frame)
                 module_vision.robotDetecting(frame)
-                time.sleep(100)
-                receivedData = newSocket.recv(1024).decode('utf-8')
-                print(">>Receive Data : ", receivedData)
-                if receivedData == "exit":
-                    print(">>Disconnected from", address)
-                    newSocket.close()
-                    loop = False
+                #receivedData = newSocket.recv(1024).decode('utf-8')
+                #print(">>Receive Data : ", receivedData)
+                #if receivedData == "exit":
+                #    print(">>Disconnected from", address)
+                #    newSocket.close()
+                #    loop = False
     finally:
         sock.close()
 
