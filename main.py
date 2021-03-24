@@ -4,7 +4,7 @@ import os
 import time
 from dotenv import load_dotenv
 import cv2
-from Modules import module_calibrate_camera, module_vision
+from Modules import module_calibrate_camera, module_vision, module_calibrate_color
 
 load_dotenv(verbose=True)
 HOST = os.getenv("HOST")
@@ -36,15 +36,17 @@ def init_system():
             loop = True
             while loop:
                 _, frame = cap.read()
-                cv2.imshow("Cenario", frame)
-                module_vision.arucoDetecting(frame)
-                module_vision.robotDetecting(frame)
+                robot_position = module_vision.robotDetecting(frame)
+                obstacleDetecting = module_vision.obstacleDetecting(frame);
+                scenery_points = module_vision.arucoDetecting(frame)
                 #receivedData = newSocket.recv(1024).decode('utf-8')
                 #print(">>Receive Data : ", receivedData)
                 #if receivedData == "exit":
                 #    print(">>Disconnected from", address)
                 #    newSocket.close()
                 #    loop = False
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
     finally:
         sock.close()
 
@@ -73,7 +75,8 @@ def print_menuCentral():  ## Your menu design here
     print(24 * "-", "CENTRAL CONTROL SYSTEM", 24 * "-")
     print("1. START CENTRAL CONTROL")
     print("2. CAMERA CALIBRATION")
-    print("3. EXIT")
+    print("3. COLOR CALIBRATION")
+    print("4. EXIT")
     print(71 * "-")
 
 
@@ -89,9 +92,12 @@ def main():
             print(">> Starting Centrel Control")
             init_system()
         if choice == 2:
-            print(">> Starting Calibration Camera")
+            print(">> Starting Camera Calibration")
             module_calibrate_camera.CalibrationCamera()
-        elif choice == 3:
+        if choice == 3:
+            print(">> Starting Color Calibration")
+            module_calibrate_color.CalibrationColor()
+        elif choice == 4:
             print(">> Exit")
             quit()
         else:
