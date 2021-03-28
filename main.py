@@ -2,14 +2,19 @@
 import socket
 import os
 import time
-from dotenv import load_dotenv
 import cv2
+import math
+import matplotlib.pyplot as plt
+from configparser import ConfigParser
 from Modules import module_calibrate_camera, module_vision, module_calibrate_color
 
-load_dotenv(verbose=True)
-HOST = os.getenv("HOST")
-PORT = int(os.getenv("PORT"))
-DEVICE_NUMBER = int(os.getenv("DEVICE_NUMBER"))
+#Read config.ini file
+config_object = ConfigParser()
+config_object.read("config.ini")
+system = config_object["SYSTEM"]
+HOST = system['HOST']
+PORT = int(system['PORT'])
+DEVICE_NUMBER = int(system['DEVICE_NUMBER'])
 
 
 def init_system():
@@ -36,9 +41,29 @@ def init_system():
             loop = True
             while loop:
                 _, frame = cap.read()
-                robot_position = module_vision.robotDetecting(frame)
-                obstacleDetecting = module_vision.obstacleDetecting(frame);
-                scenery_points = module_vision.arucoDetecting(frame)
+                robot_position = module_vision.robotDetecting(frame, config_object["ROBOT_COLOR"])
+                obstacle_position = module_vision.obstacleDetecting(frame, config_object["OBSTACLE_COLOR"])
+                cv2.line(frame, robot_position['center'], obstacle_position['center'], (0, 255, 0), 2)
+                cv2.imshow("Cenario", frame)
+                #scenery_points = module_vision.arucoDetecting(frame)
+                # Calculando a distância
+                dist_robot_obstacle = math.sqrt((robot_position['center'][0] - obstacle_position['center'][0]) ** 2) +\
+                         math.sqrt((robot_position['center'][1] - obstacle_position['center'][1]) ** 2)
+                print('A distância entre esses dois pontos é de:', dist_robot_obstacle, 'unidades de medida')
+                # x = (robot_position['center'][0], obstacle_position['center'][0])
+                # y = (robot_position['center'][1], obstacle_position['center'][1])
+                # plotting the points
+                # plt.plot(x, y, color='green', linestyle='dashed', linewidth=3, marker='o', markerfacecolor='blue', markersize=12)
+                # plt.plot(x, y)
+                # naming the x axis
+                # plt.xlabel('x - axis')
+                # naming the y axis
+                # plt.ylabel('y - axis')
+                # giving a title to my graph
+                # plt.title('Distance between the robot and the obstacle')
+                # function to show the plot
+                # plt.show()
+
                 #receivedData = newSocket.recv(1024).decode('utf-8')
                 #print(">>Receive Data : ", receivedData)
                 #if receivedData == "exit":
@@ -75,12 +100,17 @@ def print_menuCentral():  ## Your menu design here
     print(24 * "-", "CENTRAL CONTROL SYSTEM", 24 * "-")
     print("1. START CENTRAL CONTROL")
     print("2. CAMERA CALIBRATION")
-    print("3. COLOR CALIBRATION")
-    print("4. EXIT")
+    print("3. ROBOT COLOR CALIBRATION")
+    print("4. OBSTACLE COLOR CALIBRATION")
+    print("5. EXIT")
     print(71 * "-")
 
 
 def main():
+    #dist_robot_obstacle = math.sqrt((308 - 297) ** 2) + math.sqrt((177 - 103) ** 2)
+    #catX = 308 - 297
+    #catY = 177 - 103
+    #print(dist_robot_obstacle)
     while 1:
         print_menuCentral()
         try:
@@ -95,9 +125,12 @@ def main():
             print(">> Starting Camera Calibration")
             module_calibrate_camera.CalibrationCamera()
         if choice == 3:
-            print(">> Starting Color Calibration")
-            module_calibrate_color.CalibrationColor()
-        elif choice == 4:
+            print(">> Starting Robot Color Calibration")
+            module_calibrate_color.CalibrationColor('robot')
+        if choice == 4:
+            print(">> Starting Obstacle Color Calibration")
+            module_calibrate_color.CalibrationColor('obstacle')
+        elif choice == 5:
             print(">> Exit")
             quit()
         else:

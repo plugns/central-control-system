@@ -1,10 +1,11 @@
 import numpy as np
 import cv2 as cv
 import time
+from configparser import ConfigParser
 
 
 class CalibrationColor:
-    def __init__(self):
+    def __init__(self, object):
         cam = cv.VideoCapture(0)
         if cam.isOpened():
             cam.set(cv.CAP_PROP_FRAME_WIDTH, 640)
@@ -12,9 +13,6 @@ class CalibrationColor:
             width = cam.get(cv.CAP_PROP_FRAME_WIDTH)  # float
             height = cam.get(cv.CAP_PROP_FRAME_HEIGHT)  # float
             # print(cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT) # 3, 4
-            print('width, height:', width, height)
-            fps = cam.get(cv.CAP_PROP_FPS)
-            print('fps:', fps)  # float
         cv.namedWindow("Image")
         while True:
             ret, frame = cam.read()
@@ -34,23 +32,32 @@ class CalibrationColor:
                 print("Image Written!")
                 break
         cam.release()
-        cv.destroyAllWindows()
         img = cv.imread('image.png', cv.IMREAD_COLOR)
         img = cv.medianBlur(img, 5)
         # Convert BGR to HSV
+        config_object = ConfigParser()
+        config_object.read("config.ini")
+        if object == 'robot':
+            robot_color = config_object["ROBOT_COLOR"]
+            uh = int(robot_color['upperh'])
+            us = int(robot_color['uppers'])
+            uv = int(robot_color['upperv'])
+            lh = int(robot_color['lowerh'])
+            ls = int(robot_color['lowers'])
+            lv = int(robot_color['lowerv'])
+        elif object == 'obstacle':
+            obstacle_color = config_object["OBSTACLE_COLOR"]
+            uh = int(obstacle_color['upperh'])
+            us = int(obstacle_color['uppers'])
+            uv = int(obstacle_color['upperv'])
+            lh = int(obstacle_color['lowerh'])
+            ls = int(obstacle_color['lowers'])
+            lv = int(obstacle_color['lowerv'])
         hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
-        uh = 130
-        us = 255
-        uv = 255
-        lh = 110
-        ls = 50
-        lv = 50
         lower_hsv = np.array([lh, ls, lv])
         upper_hsv = np.array([uh, us, uv])
-
         # Threshold the HSV image to get only blue colors
         mask = cv.inRange(hsv, lower_hsv, upper_hsv)
-
         window_name = "HSV Calibrator"
         cv.namedWindow(window_name)
 
@@ -103,4 +110,26 @@ class CalibrationColor:
             upper_hsv = np.array([uh, us, uv])
             lower_hsv = np.array([lh, ls, lv])
             time.sleep(.1)
+            if cv.waitKey(1) & 0xFF == ord('q'):
+                break
+        # Get the configparser object
+        if object == 'robot':
+            robot_color = config_object["ROBOT_COLOR"]
+            robot_color['upperh'] = str(uh)
+            robot_color['uppers'] = str(us)
+            robot_color['upperv'] = str(uv)
+            robot_color['lowerh'] = str(lh)
+            robot_color['lowers'] = str(ls)
+            robot_color['lowerv'] = str(lv)
+        elif object == 'obstacle':
+            obstacle_color = config_object["OBSTACLE_COLOR"]
+            obstacle_color['upperh'] = str(uh)
+            obstacle_color['uppers'] = str(us)
+            obstacle_color['upperv'] = str(uv)
+            obstacle_color['lowerh'] = str(lh)
+            obstacle_color['lowers'] = str(ls)
+            obstacle_color['lowerv'] = str(lv)
+        # Write the above sections to config.ini file
+        with open('config.ini', 'w') as conf:
+            config_object.write(conf)
         cv.destroyAllWindows()
