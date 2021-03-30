@@ -1,7 +1,7 @@
 import socket
 
 # address and port is arbitrary
-def client(host="127.0.0.1", port=1000):
+def client(host="127.0.0.1", port=5000):
   with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
     sock.connect((host, port))
 
