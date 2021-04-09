@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+import socket
 import os
 import time
 import cv2
 import math
-import serial
+import random
 import matplotlib.pyplot as plt
 from configparser import ConfigParser
 from Modules import module_calibrate_camera, module_vision, module_calibrate_color
@@ -15,57 +16,70 @@ system = config_object["SYSTEM"]
 HOST = str(system['HOST'])
 PORT = int(system['PORT'])
 DEVICE_NUMBER = int(system['DEVICE_NUMBER'])
-arduino = serial.Serial(port='/dev/ttyACM0', baudrate=9600, timeout=.1)
 
 
-def write_read_seriel(data):
-    arduino.write(bytes(data, 'UTF-8'))
-    time.sleep(0.10)
-    data = arduino.readline()
-    return data
-
-''
 def init_system():
-    print("Robot Connected")
     cap = init_vision_system(DEVICE_NUMBER)
-    loop = True
-    while loop:
-        _, frame = cap.read()
-        robot_position = module_vision.robotDetecting(frame, config_object["ROBOT_COLOR"])
-        obstacle_position = module_vision.obstacleDetecting(frame, config_object["OBSTACLE_COLOR"])
-        cv2.line(frame, robot_position['center'], obstacle_position['center'], (0, 255, 0), 2)
-        cv2.imshow("Cenario", frame)
-        #scenery_points = module_vision.arucoDetecting(frame)
-        # Calculando a distância
-        dist_robot_obstacle = math.sqrt((robot_position['center'][0] - obstacle_position['center'][0]) ** 2) +\
-            math.sqrt((robot_position['center'][1] - obstacle_position['center'][1]) ** 2)
-        print('A distância entre esses dois pontos é de:', dist_robot_obstacle, 'px')
+    # Create a TCP/IP socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # Ensure that you can restart your server quickly when it terminates
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    # Set the client socket's TCP "well-known port" number
+    sock.bind((HOST, PORT))
+    # Set the number of clients waiting for connection that can be queued
+    sock.listen(5)
+    try:
+        while True:
+            newSocket, address = sock.accept()
+            print("Connected from ", address)
+            receivedData = newSocket.recv(1024).decode('utf-8')
+            if not receivedData:
+                break
+            robot_name = receivedData
+            print("Robot Connected: ", robot_name)
+            newSocket.send("OK".encode('utf-8'))
+            loop = True
+            while loop:
+                _, frame = cap.read()
+                robot_position = module_vision.robotDetecting(frame, config_object["ROBOT_COLOR"])
+                obstacle_position = module_vision.obstacleDetecting(frame, config_object["OBSTACLE_COLOR"])
+                cv2.line(frame, robot_position['center'], obstacle_position['center'], (0, 255, 0), 2)
+                cv2.imshow("Cenario", frame)
+                #scenery_points = module_vision.arucoDetecting(frame)
+                # Calculando a distância
+                dist_robot_obstacle = math.sqrt((robot_position['center'][0] - obstacle_position['center'][0]) ** 2) +\
+                         math.sqrt((robot_position['center'][1] - obstacle_position['center'][1]) ** 2)
+                print('A distância entre esses dois pontos é de:', dist_robot_obstacle, 'px')
 
-        # x = (robot_position['center'][0], obstacle_position['center'][0])
-        # y = (robot_position['center'][1], obstacle_position['center'][1])
-        # plotting the points
-        # plt.plot(x, y, color='green', linestyle='dashed', linewidth=3, marker='o', markerfacecolor='blue', markersize=12)
-        # plt.plot(x, y)
-        # naming the x axis
-        # plt.xlabel('x - axis')
-        # naming the y axis
-        # plt.ylabel('y - axis')
-        # giving a title to my graph
-        # plt.title('Distance between the robot and the obstacle')
-        # function to show the plot
-        # plt.show()
-        # (v.rodaDireita, v.rodaEsquerda, direção)
-
-        if dist_robot_obstacle < 200:
-            value = write_read_seriel("0;0;F")
-        else:
-            value = write_read_seriel("255;255;F")
-        print(">>Receive Data : ", value)
-        if value == "exit":
-            print(">>Disconnected from", address)
-            loop = False
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+                # x = (robot_position['center'][0], obstacle_position['center'][0])
+                # y = (robot_position['center'][1], obstacle_position['center'][1])
+                # plotting the points
+                # plt.plot(x, y, color='green', linestyle='dashed', linewidth=3, marker='o', markerfacecolor='blue', markersize=12)
+                # plt.plot(x, y)
+                # naming the x axis
+                # plt.xlabel('x - axis')
+                # naming the y axis
+                # plt.ylabel('y - axis')
+                # giving a title to my graph
+                # plt.title('Distance between the robot and the obstacle')
+                # function to show the plot
+                # plt.show()
+                # (v.rodaDireita, v.rodaEsquerda, direção)
+               # if dist_robot_obstacle < 200:
+                newSocket.send("1000;500;2\n".encode('utf-8'))
+               # else:
+               #     newSocket.send("300;300;1\n".encode('utf-8'))
+                receivedData = newSocket.recv(1024).decode('utf-8')
+                print(">>Receive Data : ", receivedData)
+                if receivedData == "exit":
+                    print(">>Disconnected from", address)
+                    newSocket.close()
+                    loop = False
+                time.sleep(1)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+    finally:
+        sock.close()
 
 
 def init_vision_system(device_number):
@@ -88,13 +102,48 @@ def init_vision_system(device_number):
         print('Error on open video device', device_number)
 
 
-def print_menuCentral():  ## Your menu design here
+def communication_test():
+    # Create a TCP/IP socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # Ensure that you can restart your server quickly when it terminates
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    # Set the client socket's TCP "well-known port" number
+    sock.bind((HOST, PORT))
+    # Set the number of clients waiting for connection that can be queued
+    sock.listen(5)
+    try:
+        while True:
+            newSocket, address = sock.accept()
+            print("Connected from ", address)
+            receivedData = newSocket.recv(1024).decode('utf-8')
+            if not receivedData:
+                break
+            robot_name = receivedData
+            print("Robot Connected: ", robot_name)
+            newSocket.send("OK".encode('utf-8'))
+            for i in range(20):
+                d = random.randint(300, 1024)
+                e = random.randint(300, 1024)
+                if i % 2:
+                    newSocket.send(f"{d};{e};1\n".encode('utf-8'))
+                else:
+                    newSocket.send(f"{d};{e};2\n".encode('utf-8'))
+                receivedData = newSocket.recv(1024).decode('utf-8')
+                print(">>Receive Data : ", receivedData)
+                time.sleep(5)
+            sock.close()
+    finally:
+        sock.close()
+
+
+def print_menuCentral():
     print(24 * "-", "CENTRAL CONTROL SYSTEM", 24 * "-")
     print("1. START CENTRAL CONTROL")
     print("2. CAMERA CALIBRATION")
     print("3. ROBOT COLOR CALIBRATION")
     print("4. OBSTACLE COLOR CALIBRATION")
-    print("5. EXIT")
+    print("5. COMMUNICATION TEST")
+    print("6. EXIT")
     print(71 * "-")
 
 
@@ -122,7 +171,10 @@ def main():
         if choice == 4:
             print(">> Starting Obstacle Color Calibration")
             module_calibrate_color.CalibrationColor('obstacle')
-        elif choice == 5:
+        if choice == 5:
+            print(">> Starting communication test")
+            communication_test()
+        elif choice == 6:
             print(">> Exit")
             quit()
         else:
