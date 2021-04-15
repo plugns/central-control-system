@@ -39,6 +39,8 @@ def init_system():
             print("Robot Connected: ", robot_name)
             newSocket.send("OK".encode('utf-8'))
             loop = True
+            dist_robot_obstacle = 0
+            count_frame = 0
             while loop:
                 _, frame = cap.read()
                 robot_position = module_vision.robotDetecting(frame, config_object["ROBOT_COLOR"])
@@ -65,17 +67,21 @@ def init_system():
                 # function to show the plot
                 # plt.show()
                 # (v.rodaDireita, v.rodaEsquerda, direção)
-               # if dist_robot_obstacle < 200:
-                newSocket.send("1000;500;2\n".encode('utf-8'))
-               # else:
-               #     newSocket.send("300;300;1\n".encode('utf-8'))
-                receivedData = newSocket.recv(1024).decode('utf-8')
-                print(">>Receive Data : ", receivedData)
-                if receivedData == "exit":
-                    print(">>Disconnected from", address)
-                    newSocket.close()
-                    loop = False
-                time.sleep(1)
+                if count_frame > 15:
+                    if dist_robot_obstacle < 120:
+                        newSocket.send("0;0;0\n".encode('utf-8'))
+                        print("comando 0;0;0")
+                    else:
+                        newSocket.send("800;800;1\n".encode('utf-8'))
+                        print("comando 800;800;1")
+                    receivedData = newSocket.recv(1024).decode('utf-8')
+                    print(">>Receive Data : ", receivedData)
+                    #if receivedData == "exit":
+                    #    print(">>Disconnected from", address)
+                    #    newSocket.close()
+                    #    loop = False
+                time.sleep(0.5)
+                count_frame+=1
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
     finally:
