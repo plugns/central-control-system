@@ -40,7 +40,11 @@ def init_system():
             newSocket.send("OK".encode('utf-8'))
             loop = True
             dist_robot_obstacle = 0
-            count_frame = 0
+            for i in range(10):
+                _, frame = cap.read()
+            flag_stop = False
+            flag_left = False
+            flag_right = False
             while loop:
                 _, frame = cap.read()
                 robot_position = module_vision.robotDetecting(frame, config_object["ROBOT_COLOR"])
@@ -49,44 +53,45 @@ def init_system():
                 cv2.imshow("Cenario", frame)
                 #scenery_points = module_vision.arucoDetecting(frame)
                 # Calculando a distância
-                dist_robot_obstacle = math.sqrt((robot_position['center'][0] - obstacle_position['center'][0]) ** 2) +\
-                         math.sqrt((robot_position['center'][1] - obstacle_position['center'][1]) ** 2)
+                xRobot = robot_position['center'][0]
+                yRobot = robot_position['center'][1]
+                xObstacle = obstacle_position['center'][0]
+                yObstacle = obstacle_position['center'][1]
+                dist_robot_obstacle = math.sqrt((xRobot - xObstacle) ** 2) +\
+                         math.sqrt((yRobot - yObstacle) ** 2)
                 print('A distância entre esses dois pontos é de:', dist_robot_obstacle, 'px')
 
-                # x = (robot_position['center'][0], obstacle_position['center'][0])
-                # y = (robot_position['center'][1], obstacle_position['center'][1])
-                # plotting the points
-                # plt.plot(x, y, color='green', linestyle='dashed', linewidth=3, marker='o', markerfacecolor='blue', markersize=12)
-                # plt.plot(x, y)
-                # naming the x axis
-                # plt.xlabel('x - axis')
-                # naming the y axis
-                # plt.ylabel('y - axis')
-                # giving a title to my graph
-                # plt.title('Distance between the robot and the obstacle')
-                # function to show the plot
-                # plt.show()
-                # (v.rodaDireita, v.rodaEsquerda, direção)
-                if count_frame > 15:
-                    if dist_robot_obstacle < 120:
-                        newSocket.send("0;0;0\n".encode('utf-8'))
-                        print("comando 0;0;0")
-                    else:
-                        newSocket.send("800;800;1\n".encode('utf-8'))
-                        print("comando 800;800;1")
-                    receivedData = newSocket.recv(1024).decode('utf-8')
-                    print(">>Receive Data : ", receivedData)
-                    #if receivedData == "exit":
-                    #    print(">>Disconnected from", address)
-                    #    newSocket.close()
-                    #    loop = False
-                time.sleep(0.5)
-                count_frame+=1
+                if dist_robot_obstacle < 220:
+                    newSocket.send("700;300;1\n".encode('utf-8'))
+                    print("Command: RIGHT")
+                else:
+                    flag_stop = False
+                    flag_right = False
+                    flag_left = False
+                    newSocket.send("400;400;1\n".encode('utf-8'))
+                    print("Command: FORWARD")
+                receivedData = newSocket.recv(1024).decode('utf-8')
+                print(">>Receive Data : ", receivedData)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
     finally:
         sock.close()
 
+
+# x = (robot_position['center'][0], obstacle_position['center'][0])
+# y = (robot_position['center'][1], obstacle_position['center'][1])
+# plotting the points
+# plt.plot(x, y, color='green', linestyle='dashed', linewidth=3, marker='o', markerfacecolor='blue', markersize=12)
+# plt.plot(x, y)
+# naming the x axis
+# plt.xlabel('x - axis')
+# naming the y axis
+# plt.ylabel('y - axis')
+# giving a title to my graph
+# plt.title('Distance between the robot and the obstacle')
+# function to show the plot
+# plt.show()
+# (v.rodaDireita, v.rodaEsquerda, direção)
 
 def init_vision_system(device_number):
     cap = cv2.VideoCapture(device_number)
