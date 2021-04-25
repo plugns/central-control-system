@@ -61,12 +61,13 @@ def init_system():
                          math.sqrt((yRobot - yObstacle) ** 2)
                 print('A distância entre esses dois pontos é de:', dist_robot_obstacle, 'px')
 
-                if dist_robot_obstacle < 180 and xRobot <= xObstacle:
-                    newSocket.send("900;600;4;4\n".encode('utf-8'))
-                    print("Command: LEFT")
-                elif dist_robot_obstacle < 180 and xRobot > xObstacle:
-                    newSocket.send("600;900;3;3\n".encode('utf-8'))
-                    print("Command: RIGHT")
+                if yRobot <= yObstacle and dist_robot_obstacle < 180:
+                    if xRobot <= xObstacle:
+                        newSocket.send("900;600;4;4\n".encode('utf-8'))
+                        print("Command: LEFT")
+                    elif xRobot > xObstacle:
+                        newSocket.send("600;900;3;3\n".encode('utf-8'))
+                        print("Command: RIGHT")
                 else:
                     newSocket.send("700;700;1;1\n".encode('utf-8'))
                     print("Command: FORWARD")
