@@ -61,6 +61,7 @@ def init_system():
                          math.sqrt((yRobot - yObstacle) ** 2)
                 print('A distância entre esses dois pontos é de:', dist_robot_obstacle, 'px')
 
+
                 if yRobot <= yObstacle and dist_robot_obstacle < 180:
                     if xRobot <= xObstacle:
                         newSocket.send("900;600;4;4\n".encode('utf-8'))
