@@ -60,15 +60,30 @@ def init_system():
                 dist_robot_obstacle = math.sqrt((xRobot - xObstacle) ** 2) +\
                          math.sqrt((yRobot - yObstacle) ** 2)
                 print('A distância entre esses dois pontos é de:', dist_robot_obstacle, 'px')
-
-
-                if yRobot <= yObstacle and dist_robot_obstacle < 180:
+                if dist_robot_obstacle < 180:
                     if xRobot <= xObstacle:
-                        newSocket.send("900;600;4;4\n".encode('utf-8'))
-                        print("Command: LEFT")
+                        pass
                     elif xRobot > xObstacle:
-                        newSocket.send("600;900;3;3\n".encode('utf-8'))
-                        print("Command: RIGHT")
+                        for i in range(10):
+                            newSocket.send("350;500;4;4\n".encode('utf-8'))
+                            print("Command: RIGHT")
+                            receivedData = newSocket.recv(1024).decode('utf-8')
+                            time.sleep(2)
+                        for i in range(2):
+                            newSocket.send("500;500;1;1\n".encode('utf-8'))
+                            print("Command: FORWARD")
+                            receivedData = newSocket.recv(1024).decode('utf-8')
+                            time.sleep(1)
+                        for i in range(3):
+                            newSocket.send("500;350;3;3\n".encode('utf-8'))
+                            print("Command: LEFT")
+                            receivedData = newSocket.recv(1024).decode('utf-8')
+                            time.sleep(1)
+                        for i in range(2):
+                            newSocket.send("500;500;1;1\n".encode('utf-8'))
+                            print("Command: FORWARD")
+                            receivedData = newSocket.recv(1024).decode('utf-8')
+                            time.sleep(1)
                 else:
                     newSocket.send("700;700;1;1\n".encode('utf-8'))
                     print("Command: FORWARD")
@@ -135,9 +150,32 @@ def communication_test():
             robot_name = receivedData
             print("Robot Connected: ", robot_name)
             newSocket.send("OK".encode('utf-8'))
-            for i in range(20):
+            for i in range(10):
                 d = random.randint(300, 1024)
                 e = random.randint(300, 1024)
+                print(f"{d};{e};1\n")
+                if i % 2:
+                    newSocket.send(f"{d};{e};1\n".encode('utf-8'))
+                else:
+                    newSocket.send(f"{d};{e};2\n".encode('utf-8'))
+                receivedData = newSocket.recv(1024).decode('utf-8')
+                print(">>Receive Data : ", receivedData)
+                time.sleep(5)
+            for i in range(5):
+                d = 300
+                e = random.randint(300, 1024)
+                print(f"{d};{e};1\n")
+                if i % 2:
+                    newSocket.send(f"{d};{e};1\n".encode('utf-8'))
+                else:
+                    newSocket.send(f"{d};{e};2\n".encode('utf-8'))
+                receivedData = newSocket.recv(1024).decode('utf-8')
+                print(">>Receive Data : ", receivedData)
+                time.sleep(5)
+            for i in range(5):
+                d = random.randint(300, 1024)
+                e = 300
+                print(f"{d};{e};1\n")
                 if i % 2:
                     newSocket.send(f"{d};{e};1\n".encode('utf-8'))
                 else:
