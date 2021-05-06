@@ -89,6 +89,12 @@ def obstacleDetecting(frame, config_object):
     # convert image to grayscale image
     blurred = cv2.GaussianBlur(frame_gray_obstacle, (5, 5), 0)
     thresh = cv2.threshold(blurred, 60, 255, cv2.THRESH_BINARY)[1]
+    # Find bounding box
+    x,y,w,h = cv2.boundingRect(thresh)
+    print("w={} h={}", format(str(w),str(h)))
+    cv2.rectangle(frame, (x, y), (x + w, y + h), (50,255,12), 2)
+    cv2.putText(frame, "w={},h={}".format(w,h), (x,y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (50,255,12), 2)
+
     # find contours in the thresholded image
     cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
@@ -111,6 +117,7 @@ def obstacleDetecting(frame, config_object):
         # plt.imshow(img_green)
         # plt.show()
     cv2.imshow("Obstacle", frame_obstacle)
+    cv2.imshow("Teste", frame)
     print("Obstacle -> X: ", cX_obstacle, " Y: ", cY_obstacle)
     obstacle_position = {
         'center': (cX_obstacle, cY_obstacle),

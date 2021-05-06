@@ -62,28 +62,48 @@ def init_system():
                 print('A distância entre esses dois pontos é de:', dist_robot_obstacle, 'px')
                 if dist_robot_obstacle < 180:
                     if xRobot <= xObstacle:
-                        pass
-                    elif xRobot > xObstacle:
-                        for i in range(10):
+                        for i in range(5):
                             newSocket.send("350;500;4;4\n".encode('utf-8'))
                             print("Command: RIGHT")
                             receivedData = newSocket.recv(1024).decode('utf-8')
-                            time.sleep(2)
-                        for i in range(2):
+                            time.sleep(5)
+                        for i in range(3):
                             newSocket.send("500;500;1;1\n".encode('utf-8'))
                             print("Command: FORWARD")
                             receivedData = newSocket.recv(1024).decode('utf-8')
-                            time.sleep(1)
+                            time.sleep(5)
                         for i in range(3):
                             newSocket.send("500;350;3;3\n".encode('utf-8'))
                             print("Command: LEFT")
                             receivedData = newSocket.recv(1024).decode('utf-8')
-                            time.sleep(1)
-                        for i in range(2):
+                            time.sleep(5)
+                        for i in range(3):
                             newSocket.send("500;500;1;1\n".encode('utf-8'))
                             print("Command: FORWARD")
                             receivedData = newSocket.recv(1024).decode('utf-8')
-                            time.sleep(1)
+                            time.sleep(5)
+                        pass
+                    elif xRobot > xObstacle:
+                        for i in range(5):
+                            newSocket.send("350;500;4;4\n".encode('utf-8'))
+                            print("Command: RIGHT")
+                            receivedData = newSocket.recv(1024).decode('utf-8')
+                            time.sleep(5)
+                        for i in range(3):
+                            newSocket.send("500;500;1;1\n".encode('utf-8'))
+                            print("Command: FORWARD")
+                            receivedData = newSocket.recv(1024).decode('utf-8')
+                            time.sleep(5)
+                        for i in range(3):
+                            newSocket.send("500;350;3;3\n".encode('utf-8'))
+                            print("Command: LEFT")
+                            receivedData = newSocket.recv(1024).decode('utf-8')
+                            time.sleep(5)
+                        for i in range(3):
+                            newSocket.send("500;500;1;1\n".encode('utf-8'))
+                            print("Command: FORWARD")
+                            receivedData = newSocket.recv(1024).decode('utf-8')
+                            time.sleep(5)
                 else:
                     newSocket.send("700;700;1;1\n".encode('utf-8'))
                     print("Command: FORWARD")
