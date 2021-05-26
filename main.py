@@ -37,14 +37,12 @@ def init_system():
                 break
             robot_name = receivedData
             print("Robot Connected: ", robot_name)
-            newSocket.send("OK".encode('utf-8'))
+            data = "0;0;0\n"
+            newSocket.send(data.encode('utf-8'))
+            print("Send Data", data)
             loop = True
-            dist_robot_obstacle = 0
             for i in range(10):
                 _, frame = cap.read()
-            flag_stop = False
-            flag_left = False
-            flag_right = False
             while loop:
                 _, frame = cap.read()
                 robot_position = module_vision.robotDetecting(frame, config_object["ROBOT_COLOR"])
@@ -60,53 +58,15 @@ def init_system():
                 dist_robot_obstacle = math.sqrt((xRobot - xObstacle) ** 2) +\
                          math.sqrt((yRobot - yObstacle) ** 2)
                 print('A distância entre esses dois pontos é de:', dist_robot_obstacle, 'px')
-                if dist_robot_obstacle < 180:
+                if dist_robot_obstacle < 200:
                     if xRobot <= xObstacle:
-                        for i in range(5):
-                            newSocket.send("350;500;4;4\n".encode('utf-8'))
-                            print("Command: RIGHT")
-                            receivedData = newSocket.recv(1024).decode('utf-8')
-                            time.sleep(5)
-                        for i in range(3):
-                            newSocket.send("500;500;1;1\n".encode('utf-8'))
-                            print("Command: FORWARD")
-                            receivedData = newSocket.recv(1024).decode('utf-8')
-                            time.sleep(5)
-                        for i in range(3):
-                            newSocket.send("500;350;3;3\n".encode('utf-8'))
-                            print("Command: LEFT")
-                            receivedData = newSocket.recv(1024).decode('utf-8')
-                            time.sleep(5)
-                        for i in range(3):
-                            newSocket.send("500;500;1;1\n".encode('utf-8'))
-                            print("Command: FORWARD")
-                            receivedData = newSocket.recv(1024).decode('utf-8')
-                            time.sleep(5)
-                        pass
-                    elif xRobot > xObstacle:
-                        for i in range(5):
-                            newSocket.send("350;500;4;4\n".encode('utf-8'))
-                            print("Command: RIGHT")
-                            receivedData = newSocket.recv(1024).decode('utf-8')
-                            time.sleep(5)
-                        for i in range(3):
-                            newSocket.send("500;500;1;1\n".encode('utf-8'))
-                            print("Command: FORWARD")
-                            receivedData = newSocket.recv(1024).decode('utf-8')
-                            time.sleep(5)
-                        for i in range(3):
-                            newSocket.send("500;350;3;3\n".encode('utf-8'))
-                            print("Command: LEFT")
-                            receivedData = newSocket.recv(1024).decode('utf-8')
-                            time.sleep(5)
-                        for i in range(3):
-                            newSocket.send("500;500;1;1\n".encode('utf-8'))
-                            print("Command: FORWARD")
-                            receivedData = newSocket.recv(1024).decode('utf-8')
-                            time.sleep(5)
+                        turn_right(newSocket)
+                    else:
+                        turn_left(newSocket)
                 else:
-                    newSocket.send("700;700;1;1\n".encode('utf-8'))
-                    print("Command: FORWARD")
+                    data = "1;400;400\n"
+                    newSocket.send(data.encode('utf-8'))
+                    print("Send Data", data)
                 receivedData = newSocket.recv(1024).decode('utf-8')
                 print(">>Receive Data : ", receivedData)
 
@@ -115,6 +75,51 @@ def init_system():
     finally:
         sock.close()
 
+
+def turn_right(newSocket):
+    data = "4;350;700\n"
+    for i in range(5):
+        newSocket.send(data.encode('utf-8'))
+        print("Send Data", data)
+    data = "1;600;600\n"
+    for i in range(10):
+        newSocket.send(data.encode('utf-8'))
+        print("Send Data", data)
+    data = "3;700;350\n"
+    for i in range(5):
+        newSocket.send(data.encode('utf-8'))
+        print("Send Data", data)
+    data = "1;600;600\n"
+    for i in range(10):
+        newSocket.send(data.encode('utf-8'))
+        print("Send Data", data)
+    data = "0;0;0\n"
+    for i in range(5):
+        newSocket.send(data.encode('utf-8'))
+        print("Send Data", data)
+
+
+def turn_left(newSocket):
+    data = "4;700;350\n"
+    for i in range(5):
+        newSocket.send(data.encode('utf-8'))
+        print("Send Data", data)
+    data = "1;600;600\n"
+    for i in range(10):
+        newSocket.send(data.encode('utf-8'))
+        print("Send Data", data)
+    data = "3;350;700\n"
+    for i in range(5):
+        newSocket.send(data.encode('utf-8'))
+        print("Send Data", data)
+    data = "1;600;600\n"
+    for i in range(10):
+        newSocket.send(data.encode('utf-8'))
+        print("Send Data", data)
+    data = "0;0;0\n"
+    for i in range(5):
+        newSocket.send(data.encode('utf-8'))
+        print("Send Data", data)
 
 # x = (robot_position['center'][0], obstacle_position['center'][0])
 # y = (robot_position['center'][1], obstacle_position['center'][1])
