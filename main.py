@@ -62,14 +62,15 @@ def init_system():
                 print('A distância entre esses dois pontos é de:', dist_robot_obstacle, 'px')
                 if dist_robot_obstacle < 200:
                     if xRobot < xObstacle:
-                        teste = xObstacle - ((wObstacle / 2) - 10)
+                        teste = xObstacle - ((wObstacle / 2) - 20)
                         print('Teste:', teste, 'px')
                         if xRobot > teste:
                             turn_left(newSocket)
+                            turn_right(newSocket)
                         else:
                             forward(newSocket)
                     else:
-                        teste = ((wObstacle / 2) + 10) + xObstacle
+                        teste = ((wObstacle / 2) + 20) + xObstacle
                         print('Teste:', teste, 'px')
                         if xRobot < teste:
                             turn_right(newSocket)
@@ -84,6 +85,14 @@ def init_system():
         sock.close()
 
 
+def stop(newSocket):
+    data = "0;0;0\n"
+    newSocket.send(data.encode('utf-8'))
+    print("Send Data", data)
+    receivedData = newSocket.recv(1024).decode('utf-8')
+    print(">>Receive Data : ", receivedData)
+
+
 def forward(newSocket):
     data = "1;400;400\n"
     newSocket.send(data.encode('utf-8'))
@@ -94,13 +103,13 @@ def forward(newSocket):
 
 def turn_right(newSocket):
     data = "3;350;900\n"
-    for i in range(2):
+    for i in range(4):
         newSocket.send(data.encode('utf-8'))
         print("Send Data", data)
         receivedData = newSocket.recv(1024).decode('utf-8')
         print(">>Receive Data : ", receivedData)
     data = "1;1000;1000\n"
-    for i in range(10):
+    for i in range(2):
         newSocket.send(data.encode('utf-8'))
         print("Send Data", data)
         receivedData = newSocket.recv(1024).decode('utf-8')
@@ -109,13 +118,13 @@ def turn_right(newSocket):
 
 def turn_left(newSocket):
     data = "4;900;350\n"
-    for i in range(2):
+    for i in range(4):
         newSocket.send(data.encode('utf-8'))
         print("Send Data", data)
         receivedData = newSocket.recv(1024).decode('utf-8')
         print(">>Receive Data : ", receivedData)
     data = "1;1024;1024\n"
-    for i in range(10):
+    for i in range(2):
         newSocket.send(data.encode('utf-8'))
         print("Send Data", data)
         receivedData = newSocket.recv(1024).decode('utf-8')
