@@ -55,20 +55,28 @@ def init_system():
                 yRobot = robot_position['center'][1]
                 xObstacle = obstacle_position['center'][0]
                 yObstacle = obstacle_position['center'][1]
+                wObstacle = obstacle_position['size'][0]
+                hObstacle = obstacle_position['size'][1]
                 dist_robot_obstacle = math.sqrt((xRobot - xObstacle) ** 2) +\
                          math.sqrt((yRobot - yObstacle) ** 2)
                 print('A distância entre esses dois pontos é de:', dist_robot_obstacle, 'px')
                 if dist_robot_obstacle < 200:
-                    if xRobot <= xObstacle:
-                        turn_right(newSocket)
+                    if xRobot < xObstacle:
+                        teste = xObstacle - ((wObstacle / 2) - 10)
+                        print('Teste:', teste, 'px')
+                        if xRobot > teste:
+                            turn_left(newSocket)
+                        else:
+                            forward(newSocket)
                     else:
-                        turn_left(newSocket)
+                        teste = ((wObstacle / 2) + 10) + xObstacle
+                        print('Teste:', teste, 'px')
+                        if xRobot < teste:
+                            turn_right(newSocket)
+                        else:
+                            forward(newSocket)
                 else:
-                    data = "1;400;400\n"
-                    newSocket.send(data.encode('utf-8'))
-                    print("Send Data", data)
-                receivedData = newSocket.recv(1024).decode('utf-8')
-                print(">>Receive Data : ", receivedData)
+                    forward(newSocket)
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
@@ -76,50 +84,43 @@ def init_system():
         sock.close()
 
 
+def forward(newSocket):
+    data = "1;400;400\n"
+    newSocket.send(data.encode('utf-8'))
+    print("Send Data", data)
+    receivedData = newSocket.recv(1024).decode('utf-8')
+    print(">>Receive Data : ", receivedData)
+
+
 def turn_right(newSocket):
-    data = "4;350;700\n"
-    for i in range(5):
+    data = "3;350;900\n"
+    for i in range(2):
         newSocket.send(data.encode('utf-8'))
         print("Send Data", data)
-    data = "1;600;600\n"
+        receivedData = newSocket.recv(1024).decode('utf-8')
+        print(">>Receive Data : ", receivedData)
+    data = "1;1000;1000\n"
     for i in range(10):
         newSocket.send(data.encode('utf-8'))
         print("Send Data", data)
-    data = "3;700;350\n"
-    for i in range(5):
-        newSocket.send(data.encode('utf-8'))
-        print("Send Data", data)
-    data = "1;600;600\n"
-    for i in range(10):
-        newSocket.send(data.encode('utf-8'))
-        print("Send Data", data)
-    data = "0;0;0\n"
-    for i in range(5):
-        newSocket.send(data.encode('utf-8'))
-        print("Send Data", data)
+        receivedData = newSocket.recv(1024).decode('utf-8')
+        print(">>Receive Data : ", receivedData)
 
 
 def turn_left(newSocket):
-    data = "4;700;350\n"
-    for i in range(5):
+    data = "4;900;350\n"
+    for i in range(2):
         newSocket.send(data.encode('utf-8'))
         print("Send Data", data)
-    data = "1;600;600\n"
+        receivedData = newSocket.recv(1024).decode('utf-8')
+        print(">>Receive Data : ", receivedData)
+    data = "1;1024;1024\n"
     for i in range(10):
         newSocket.send(data.encode('utf-8'))
         print("Send Data", data)
-    data = "3;350;700\n"
-    for i in range(5):
-        newSocket.send(data.encode('utf-8'))
-        print("Send Data", data)
-    data = "1;600;600\n"
-    for i in range(10):
-        newSocket.send(data.encode('utf-8'))
-        print("Send Data", data)
-    data = "0;0;0\n"
-    for i in range(5):
-        newSocket.send(data.encode('utf-8'))
-        print("Send Data", data)
+        receivedData = newSocket.recv(1024).decode('utf-8')
+        print(">>Receive Data : ", receivedData)
+
 
 # x = (robot_position['center'][0], obstacle_position['center'][0])
 # y = (robot_position['center'][1], obstacle_position['center'][1])
