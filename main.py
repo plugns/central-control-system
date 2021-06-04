@@ -60,24 +60,29 @@ def init_system():
                 dist_robot_obstacle = math.sqrt((xRobot - xObstacle) ** 2) +\
                          math.sqrt((yRobot - yObstacle) ** 2)
                 print('A distância entre esses dois pontos é de:', dist_robot_obstacle, 'px')
-                if dist_robot_obstacle < 200:
+                if dist_robot_obstacle < 200 and yRobot > yObstacle:
                     if xRobot < xObstacle:
-                        teste = xObstacle - ((wObstacle / 2) - 20)
-                        print('Teste:', teste, 'px')
-                        if xRobot > teste:
-                            turn_left(newSocket)
-                            turn_right(newSocket)
-                        else:
-                            forward(newSocket)
+                        stop(newSocket)
+                        turn_left(newSocket, 6)
+                        forward(newSocket, 5)
+                        turn_right(newSocket, 5)
+                        forward(newSocket, 16)
+                        for i in range(15):
+                            _, frame = cap.read()
                     else:
-                        teste = ((wObstacle / 2) + 20) + xObstacle
-                        print('Teste:', teste, 'px')
-                        if xRobot < teste:
-                            turn_right(newSocket)
-                        else:
-                            forward(newSocket)
+                        stop(newSocket)
+                        turn_right(newSocket, 6)
+                        forward(newSocket, 5)
+                        turn_left(newSocket, 5)
+                        forward(newSocket, 16)
+                        for i in range(15):
+                            _, frame = cap.read()
                 else:
-                    forward(newSocket)
+                    data = "1;600;600\n"
+                    newSocket.send(data.encode('utf-8'))
+                    print("Send Data", data)
+                    receivedData = newSocket.recv(1024).decode('utf-8')
+                    print(">>Receive Data : ", receivedData)
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
@@ -93,38 +98,27 @@ def stop(newSocket):
     print(">>Receive Data : ", receivedData)
 
 
-def forward(newSocket):
+def forward(newSocket, n):
     data = "1;400;400\n"
-    newSocket.send(data.encode('utf-8'))
-    print("Send Data", data)
-    receivedData = newSocket.recv(1024).decode('utf-8')
-    print(">>Receive Data : ", receivedData)
+    for i in range(n):
+        newSocket.send(data.encode('utf-8'))
+        print("Send Data", data)
+        receivedData = newSocket.recv(1024).decode('utf-8')
+        print(">>Receive Data : ", receivedData)
 
 
-def turn_right(newSocket):
+def turn_right(newSocket, n):
     data = "3;350;900\n"
-    for i in range(4):
-        newSocket.send(data.encode('utf-8'))
-        print("Send Data", data)
-        receivedData = newSocket.recv(1024).decode('utf-8')
-        print(">>Receive Data : ", receivedData)
-    data = "1;1000;1000\n"
-    for i in range(2):
+    for i in range(n):
         newSocket.send(data.encode('utf-8'))
         print("Send Data", data)
         receivedData = newSocket.recv(1024).decode('utf-8')
         print(">>Receive Data : ", receivedData)
 
 
-def turn_left(newSocket):
+def turn_left(newSocket, n):
     data = "4;900;350\n"
-    for i in range(4):
-        newSocket.send(data.encode('utf-8'))
-        print("Send Data", data)
-        receivedData = newSocket.recv(1024).decode('utf-8')
-        print(">>Receive Data : ", receivedData)
-    data = "1;1024;1024\n"
-    for i in range(2):
+    for i in range(n):
         newSocket.send(data.encode('utf-8'))
         print("Send Data", data)
         receivedData = newSocket.recv(1024).decode('utf-8')
