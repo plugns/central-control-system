@@ -43,47 +43,61 @@ def init_system():
             loop = True
             for i in range(10):
                 _, frame = cap.read()
+            flag = False
             while loop:
                 _, frame = cap.read()
                 robot_position = module_vision.robotDetecting(frame, config_object["ROBOT_COLOR"])
-                obstacle_position = module_vision.obstacleDetecting(frame, config_object["OBSTACLE_COLOR"])
-                cv2.line(frame, robot_position['center'], obstacle_position['center'], (0, 255, 0), 2)
-                cv2.imshow("Cenario", frame)
+                obstacles_positions = module_vision.obstacleDetecting(frame, config_object["OBSTACLE_COLOR"])
                 #scenery_points = module_vision.arucoDetecting(frame)
                 # Calculando a distância
                 xRobot = robot_position['center'][0]
                 yRobot = robot_position['center'][1]
-                xObstacle = obstacle_position['center'][0]
-                yObstacle = obstacle_position['center'][1]
-                wObstacle = obstacle_position['size'][0]
-                hObstacle = obstacle_position['size'][1]
-                dist_robot_obstacle = math.sqrt((xRobot - xObstacle) ** 2) +\
-                         math.sqrt((yRobot - yObstacle) ** 2)
-                print('A distância entre esses dois pontos é de:', dist_robot_obstacle, 'px')
-                if dist_robot_obstacle < 200 and yRobot > yObstacle:
-                    if xRobot < xObstacle:
+                turnLeftRobot = False
+                turnRightRobot = False
+                for obstacle_position in obstacles_positions:
+                    xObstacle = obstacle_position['center'][0]
+                    yObstacle = obstacle_position['center'][1]
+                    wObstacle = obstacle_position['size'][0]
+                    hObstacle = obstacle_position['size'][1]
+                    dist_robot_obstacle = math.sqrt((xRobot - xObstacle) ** 2) +\
+                             math.sqrt((yRobot - yObstacle) ** 2)
+                    print('A distância entre o robô e o obstáculo é de:', dist_robot_obstacle, 'px')
+                    cv2.line(frame, robot_position['center'], obstacle_position['center'], (0, 255, 0), 2)
+                    if dist_robot_obstacle < 170:
+                        if xRobot <= xObstacle:
+                            turnLeftRobot = True
+                            turnRightRobot = False
+                        else:
+                            turnLeftRobot = False
+                            turnRightRobot = True
+
+                if (turnLeftRobot or turnRightRobot) and not flag:
+                    flag = True
+                    if turnLeftRobot:
                         stop(newSocket)
-                        turn_left(newSocket, 6)
-                        forward(newSocket, 5)
-                        turn_right(newSocket, 5)
-                        forward(newSocket, 16)
+                    #    turn_left(newSocket, 6)
+                    #    forward(newSocket, 5)
+                    #    turn_right(newSocket, 6)
+                    #    forward(newSocket, 9)
                         for i in range(15):
                             _, frame = cap.read()
-                    else:
+                    elif turnRightRobot:
                         stop(newSocket)
-                        turn_right(newSocket, 6)
-                        forward(newSocket, 5)
-                        turn_left(newSocket, 5)
-                        forward(newSocket, 16)
+                    #    turn_right(newSocket, 6)
+                    #    forward(newSocket, 5)
+                    #    turn_left(newSocket, 6)
+                    #    forward(newSocket, 9)
                         for i in range(15):
                             _, frame = cap.read()
                 else:
-                    data = "1;600;600\n"
-                    newSocket.send(data.encode('utf-8'))
-                    print("Send Data", data)
-                    receivedData = newSocket.recv(1024).decode('utf-8')
-                    print(">>Receive Data : ", receivedData)
-
+                    data = "1;400;400\n"
+                   # newSocket.send(data.encode('utf-8'))
+                   # print("Send Data", data)
+                   # receivedData = newSocket.recv(1024).decode('utf-8')
+                   # print(">>Receive Data : ", receivedData)
+                    if dist_robot_obstacle > 160:
+                        flag = False
+                cv2.imshow("Cenario", frame)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
     finally:

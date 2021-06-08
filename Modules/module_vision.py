@@ -91,10 +91,10 @@ def obstacleDetecting(frame, config_object):
     thresh = cv2.threshold(blurred, 60, 255, cv2.THRESH_BINARY)[1]
 
     # Find bounding box
-    x, y, w, h = cv2.boundingRect(thresh)
-    print("w={} h={}".format(w, h))
-    cv2.rectangle(frame, (x, y), (x + w, y + h), (50,255,12), 2)
-    cv2.putText(frame, "w={},h={}".format(w, h), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (50,255,12), 2)
+    #x, y, w, h = cv2.boundingRect(thresh)
+    #print("w={} h={}".format(w, h))
+    #cv2.rectangle(frame, (x, y), (x + w, y + h), (50,255,12), 2)
+    #cv2.putText(frame, "w={},h={}".format(w, h), (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (50,255,12), 2)
 
     # find contours in the thresholded image
     cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -103,6 +103,7 @@ def obstacleDetecting(frame, config_object):
     cY_obstacle = 0
     # left, right, top , button
     # loop over the contours
+    obstacles_positions = []
     for c in cnts:
         # compute the center of the contour
         M = cv2.moments(c)
@@ -114,18 +115,17 @@ def obstacleDetecting(frame, config_object):
             cv2.circle(frame_obstacle, (cX_obstacle, cY_obstacle), 8, (255, 255, 255), -1)
             cv2.putText(frame_obstacle, "Obstacle", (cX_obstacle - 20, cY_obstacle - 20),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+            print("Obstacle -> X: ", cX_obstacle, " Y: ", cY_obstacle)
+            obstacles_positions.append({
+                'center': (cX_obstacle, cY_obstacle),
+                'size': (0, 0),
+            })
         # show the image
         # plt.imshow(img_green)
         # plt.show()
     cv2.imshow("Obstacle", frame_obstacle)
     #cv2.imshow("Teste", frame)
-    print("Obstacle -> X: ", cX_obstacle, " Y: ", cY_obstacle)
-    obstacle_position = {
-        'center': (cX_obstacle, cY_obstacle),
-        'size': (w, h),
-    }
-    # left, right, top , button
-    return obstacle_position
+    return obstacles_positions
 
 
 def arucoDetecting(frame):
