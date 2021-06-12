@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from configparser import ConfigParser
 from Modules import module_calibrate_camera, module_vision, module_calibrate_color
 
-#Read config.ini file
+# Read config.ini file
 config_object = ConfigParser()
 config_object.read("config.ini")
 system = config_object["SYSTEM"]
@@ -43,12 +43,11 @@ def init_system():
             loop = True
             for i in range(10):
                 _, frame = cap.read()
-            flag = False
+            send_commands = False
             while loop:
                 _, frame = cap.read()
                 robot_position = module_vision.robotDetecting(frame, config_object["ROBOT_COLOR"])
                 obstacles_positions = module_vision.obstacleDetecting(frame, config_object["OBSTACLE_COLOR"])
-                #scenery_points = module_vision.arucoDetecting(frame)
                 # Calculando a distância
                 xRobot = robot_position['center'][0]
                 yRobot = robot_position['center'][1]
@@ -57,46 +56,56 @@ def init_system():
                 for obstacle_position in obstacles_positions:
                     xObstacle = obstacle_position['center'][0]
                     yObstacle = obstacle_position['center'][1]
-                    wObstacle = obstacle_position['size'][0]
-                    hObstacle = obstacle_position['size'][1]
-                    dist_robot_obstacle = math.sqrt((xRobot - xObstacle) ** 2) +\
-                             math.sqrt((yRobot - yObstacle) ** 2)
+                    dist_robot_obstacle = math.sqrt((xRobot - xObstacle) ** 2) + \
+                                          math.sqrt((yRobot - yObstacle) ** 2)
                     print('A distância entre o robô e o obstáculo é de:', dist_robot_obstacle, 'px')
                     cv2.line(frame, robot_position['center'], obstacle_position['center'], (0, 255, 0), 2)
-                    if dist_robot_obstacle < 170:
+                    if dist_robot_obstacle < 170 and yRobot > yObstacle:
                         if xRobot <= xObstacle:
                             turnLeftRobot = True
                             turnRightRobot = False
                         else:
                             turnLeftRobot = False
                             turnRightRobot = True
-
-                if (turnLeftRobot or turnRightRobot) and not flag:
-                    flag = True
-                    if turnLeftRobot:
-                        stop(newSocket)
-                    #    turn_left(newSocket, 6)
-                    #    forward(newSocket, 5)
-                    #    turn_right(newSocket, 6)
-                    #    forward(newSocket, 9)
-                        for i in range(15):
-                            _, frame = cap.read()
-                    elif turnRightRobot:
-                        stop(newSocket)
-                    #    turn_right(newSocket, 6)
-                    #    forward(newSocket, 5)
-                    #    turn_left(newSocket, 6)
-                    #    forward(newSocket, 9)
-                        for i in range(15):
-                            _, frame = cap.read()
-                else:
-                    data = "1;400;400\n"
-                   # newSocket.send(data.encode('utf-8'))
-                   # print("Send Data", data)
-                   # receivedData = newSocket.recv(1024).decode('utf-8')
-                   # print(">>Receive Data : ", receivedData)
-                    if dist_robot_obstacle > 160:
-                        flag = False
+                if send_commands:
+                    if (turnLeftRobot or turnRightRobot):
+                        if turnLeftRobot:
+                            stop(newSocket)
+                            print("left")
+                            turn_left(newSocket, 5)
+                            for i in range(5):
+                                _, frame = cap.read()
+                            forward(newSocket, 5)
+                            for i in range(5):
+                                _, frame = cap.read()
+                            turn_right(newSocket, 6)
+                            for i in range(6):
+                                _, frame = cap.read()
+                            forward(newSocket, 9)
+                            for i in range(9):
+                                _, frame = cap.read()
+                        elif turnRightRobot:
+                            stop(newSocket)
+                            print("right")
+                            turn_right(newSocket, 5)
+                            for i in range(5):
+                                _, frame = cap.read()
+                            forward(newSocket, 5)
+                            for i in range(5):
+                                _, frame = cap.read()
+                            turn_left(newSocket, 6)
+                            for i in range(6):
+                                _, frame = cap.read()
+                            forward(newSocket, 9)
+                            for i in range(9):
+                                _, frame = cap.read()
+                    else:
+                        data = "1;400;400\n"
+                        print("forward")
+                        newSocket.send(data.encode('utf-8'))
+                        print("Send Data", data)
+                        receivedData = newSocket.recv(1024).decode('utf-8')
+                        print(">>Receive Data : ", receivedData)
                 cv2.imshow("Cenario", frame)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
@@ -137,7 +146,6 @@ def turn_left(newSocket, n):
         print("Send Data", data)
         receivedData = newSocket.recv(1024).decode('utf-8')
         print(">>Receive Data : ", receivedData)
-
 
 # x = (robot_position['center'][0], obstacle_position['center'][0])
 # y = (robot_position['center'][1], obstacle_position['center'][1])
@@ -243,10 +251,10 @@ def print_menuCentral():
 
 
 def main():
-    #dist_robot_obstacle = math.sqrt((308 - 297) ** 2) + math.sqrt((177 - 103) ** 2)
-    #catX = 308 - 297
-    #catY = 177 - 103
-    #print(dist_robot_obstacle)
+    # dist_robot_obstacle = math.sqrt((308 - 297) ** 2) + math.sqrt((177 - 103) ** 2)
+    # catX = 308 - 297
+    # catY = 177 - 103
+    # print(dist_robot_obstacle)
     while 1:
         print_menuCentral()
         try:
